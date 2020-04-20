@@ -1,14 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import namedtuple
 
 # support types show the (X, Y, rot) restrictions
-SUPPORT_TYPES = {
-	0: (False, False, False),	# pin-joint
-	1: (True, False, False),	# X-restricted roller support
-	2: (False, True, False),	# Y-restricted roller support
-	3: (True, True, False),		# stationary pin-joint support
-	4: (True, True, True)		# cantilever support
-}
+Support = namedtuple('Support', ('restrictions', 'color'))
+SUPPORT_TYPES = (
+	Support((False, False, False), 'red'),	# pin-joint
+	Support((True, False, False), 'blue'),	# X-restricted roller support
+	Support((False, True, False), 'green'),	# Y-restricted roller support
+	Support((True, True, False), 'orange'),	# stationary pin-joint support
+	Support((True, True, True), 'black')	# cantilever support
+)
 
 class Joint:
 	"""Class to contain a joint or support
@@ -17,14 +19,20 @@ class Joint:
 		self.pos = pos
 		self.connections = []
 		self.support_type = support
+		self.line = None
 
 	def add_member(self, other: 'Joint'):
 		self.connections.append(other)
 
 	def draw(self, ax: plt.Axes):
-		ax.plot(*self.pos,'o', color="red")
+		"""Plots a marker on the axes. If there is already a marker for this joint, update it"""
+		color = SUPPORT_TYPES[self.support_type].color
+		if self.line is None:
+			self.line, = ax.plot(*self.pos,'o', color=color)
+		else:
+			self.line.set_color(color)
 
-	def is_near(self, other_pos, radius=10):
+	def is_near(self, other_pos, radius=0.02):
 		return np.linalg.norm(self.pos - other_pos) < radius
 
 	def change_joint_type(self):
