@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
 import numpy as np
 
-from parts import Joint
+from parts import Joint, Member
 
-class JointHandler:
+class EventHandler:
 	def __init__(self, fig: plt.Figure, ax: plt.Axes):
 		self.fig = fig
 		self.ax = ax
@@ -34,12 +34,14 @@ class JointHandler:
 						self.new_line.set_visible(True)
 
 				elif event.button == MouseButton.RIGHT:
+					# change the type of support
 					joint.change_joint_type()
 					joint.draw(self.ax)
 				break
 		# else triggers if no break - click coord is not close to existing point
 		else:
 			if event.button == MouseButton.LEFT:
+				# create a new joint
 				new_joint = Joint(pos)
 				self.joints.append(new_joint)
 				new_joint.draw(self.ax)
@@ -52,9 +54,8 @@ class JointHandler:
 			pos = np.array([event.xdata, event.ydata])
 			for joint in self.joints:
 				if joint.is_near(pos):
-					joint.add_member(self.origin_joint)
-					xs, ys = zip(joint.pos, self.origin_joint.pos)
-					plt.plot(xs, ys)
+					new_member = joint.add_member(self.origin_joint)
+					new_member.draw(self.ax)
 
 			self.new_line.set_visible(False)
 			self.origin_joint = None
@@ -73,7 +74,7 @@ def get_draw_ui():
 	"""Creates figure and axes for drawing
 	Connects click event to onclick function"""
 	fig, ax = plt.subplots()
-	handler = JointHandler(fig, ax)
+	handler = EventHandler(fig, ax)
 	fig.canvas.mpl_connect('button_press_event', handler.on_click)
 	fig.canvas.mpl_connect('button_release_event', handler.on_release)
 	fig.canvas.mpl_connect('motion_notify_event', handler.on_move)

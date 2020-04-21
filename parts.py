@@ -17,12 +17,15 @@ class Joint:
 	Handles all members as connections between joints"""
 	def __init__(self, pos: np.ndarray, support=0):
 		self.pos = pos
-		self.connections = []
+		self.members = []
 		self.support_type = support
 		self.line = None
 
 	def add_member(self, other: 'Joint'):
-		self.connections.append(other)
+		new_member = Member(self, other)
+		self.members.append(new_member)
+		other.members.append(new_member)
+		return new_member
 
 	def draw(self, ax: plt.Axes):
 		"""Plots a marker on the axes. If there is already a marker for this joint, update it"""
@@ -41,13 +44,22 @@ class Joint:
 	def delete(self):
 		"""Removes the marker and all connected members"""
 		self.line.set_visible(False)
+		for m in self.members:
+			m.delete()
 
 
 class Member:
-	def __init__(self, joint1, joint2):
+	def __init__(self, joint1: Joint, joint2: Joint):
 		self.j1 = joint1
 		self.j2 = joint2
 		self.line = None
 
 	def draw(self, ax: plt.Axes):
 		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue')
+
+	def delete(self):
+		"""Remove line from axes, then delete self"""
+		if self.line is not None:
+			self.line.set_visible(False)
+		self.j1.members.remove(self)
+		self.j2.members.remove(self)
