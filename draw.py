@@ -9,7 +9,9 @@ class JointHandler:
 		self.fig = fig
 		self.ax = ax
 		self.joints = []
+
 		self.origin_joint = None
+		self.new_line = None
 
 	def on_click(self, event):
 		"""On click event is handled by the JointHandler class
@@ -21,6 +23,8 @@ class JointHandler:
 			if joint.is_near(pos):
 				if event.button == MouseButton.LEFT:
 					self.origin_joint = joint
+					if self.new_line is None:
+						self.new_line, = self.ax.plot(*zip(joint.pos, pos))
 				elif event.button == MouseButton.RIGHT:
 					joint.change_joint_type()
 					joint.draw(self.ax)
@@ -37,7 +41,6 @@ class JointHandler:
 		"""If the mouse is being held down to draw a new member, create a member between the origin
 		and the nearest joint, if one is near"""
 		if self.origin_joint is not None:
-			print("!")
 			pos = np.array([event.xdata, event.ydata])
 			for joint in self.joints:
 				if joint.is_near(pos):
@@ -48,6 +51,14 @@ class JointHandler:
 			self.origin_joint = None
 			self.fig.canvas.draw()
 
+	def on_move(self, event):
+		"""If a line is being drawn, update the member to end at the current mouse position"""
+		if self.origin_joint is not None:
+			pos = np.array([event.xdata, event.ydata])
+			self.new_line.set_data(*zip(self.origin_joint.pos, pos))
+			self.fig.canvas.draw()
+
+
 
 def get_draw_ui():
 	"""Creates figure and axes for drawing
@@ -56,6 +67,7 @@ def get_draw_ui():
 	handler = JointHandler(fig, ax)
 	fig.canvas.mpl_connect('button_press_event', handler.on_click)
 	fig.canvas.mpl_connect('button_release_event', handler.on_release)
+	fig.canvas.mpl_connect('motion_notify_event', handler.on_move)
 	ax.autoscale(False)
 	return fig, ax, handler
 
