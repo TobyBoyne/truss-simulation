@@ -37,3 +37,7 @@ class Joint:
 
 	def change_joint_type(self):
 		self.support_type = (self.support_type + 1) % len(SUPPORT_TYPES)
+
+	def delete(self):
+		"""Removes the marker and all connected members"""
+		self.line.set_visible(False)
