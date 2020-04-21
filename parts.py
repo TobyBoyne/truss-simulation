@@ -41,3 +41,13 @@ class Joint:
 	def delete(self):
 		"""Removes the marker and all connected members"""
 		self.line.set_visible(False)
+
+
+class Member:
+	def __init__(self, joint1, joint2):
+		self.j1 = joint1
+		self.j2 = joint2
+		self.line = None
+
+	def draw(self, ax: plt.Axes):
+		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue')
