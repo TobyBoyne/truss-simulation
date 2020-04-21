@@ -1,17 +1,20 @@
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
 import numpy as np
+from itertools import chain
 
 from parts import Joint, Member
+from structure import Structure
 
 class EventHandler:
 	def __init__(self, fig: plt.Figure, ax: plt.Axes):
 		self.fig = fig
 		self.ax = ax
-		self.joints = []
+		self.structure = Structure()
 
 		self.origin_joint = None
 		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--')
+
 
 	def on_click(self, event):
 		"""On click event is handled by the JointHandler class
@@ -20,30 +23,28 @@ class EventHandler:
 		If the user click-and-drags from an existing joint, draw a new member
 		Otherwise, add a new joint"""
 		pos = np.array([event.xdata, event.ydata])
-		for joint in self.joints:
-			if joint.is_near(pos):
-				if event.button == MouseButton.LEFT:
-					if event.dblclick:
-						# delete the joint
-						joint.delete()
-						self.joints.remove(joint)
-					else:
-						# set the new member to be visible
-						self.origin_joint = joint
-						self.new_line.set_data(*zip(joint.pos, pos))
-						self.new_line.set_visible(True)
+		joint = self.structure.get_nearest_joint(pos)
+		if joint is not None:
+			if event.button == MouseButton.LEFT:
+				if event.dblclick:
+					# delete the joint
+					self.structure.delete_joint(joint)
+				else:
+					# set the new member to be visible
+					self.origin_joint = joint
+					self.new_line.set_data(*zip(joint.pos, pos))
+					self.new_line.set_visible(True)
 
-				elif event.button == MouseButton.RIGHT:
-					# change the type of support
-					joint.change_joint_type()
-					joint.draw(self.ax)
-				break
-		# else triggers if no break - click coord is not close to existing point
+			elif event.button == MouseButton.RIGHT:
+				# change the type of support
+				joint.change_joint_type()
+				joint.draw(self.ax)
+
+		# else triggers if click coord is not close to existing point
 		else:
 			if event.button == MouseButton.LEFT:
-				# create a new joint
-				new_joint = Joint(pos)
-				self.joints.append(new_joint)
+				# create new joint
+				new_joint = self.structure.add_joint(pos)
 				new_joint.draw(self.ax)
 		self.fig.canvas.draw()
 
@@ -52,10 +53,10 @@ class EventHandler:
 		and the nearest joint, if one is near"""
 		if self.origin_joint is not None:
 			pos = np.array([event.xdata, event.ydata])
-			for joint in self.joints:
-				if joint.is_near(pos):
-					new_member = joint.add_member(self.origin_joint)
-					new_member.draw(self.ax)
+			joint = self.structure.get_nearest_joint(pos)
+			if joint is not None and joint is not self.origin_joint:
+				new_member = joint.add_member(self.origin_joint)
+				new_member.draw(self.ax)
 
 			self.new_line.set_visible(False)
 			self.origin_joint = None

@@ -13,8 +13,7 @@ SUPPORT_TYPES = (
 )
 
 class Joint:
-	"""Class to contain a joint or support
-	Handles all members as connections between joints"""
+	"""Class to contain a joint or support"""
 	def __init__(self, pos: np.ndarray, support=0):
 		self.pos = pos
 		self.members = []
@@ -31,7 +30,7 @@ class Joint:
 		"""Plots a marker on the axes. If there is already a marker for this joint, update it"""
 		color = SUPPORT_TYPES[self.support_type].color
 		if self.line is None:
-			self.line, = ax.plot(*self.pos,'o', color=color)
+			self.line, = ax.plot(*self.pos,'o', color=color, picker=True)
 		else:
 			self.line.set_color(color)
 
@@ -43,12 +42,13 @@ class Joint:
 
 	def delete(self):
 		"""Removes the marker and all connected members"""
-		self.line.set_visible(False)
+		self.line.remove()
 		for m in self.members:
-			m.delete()
+			m.delete(from_joint=self)
 
 
 class Member:
+	"""Stores information about a single member between two joints"""
 	def __init__(self, joint1: Joint, joint2: Joint):
 		self.j1 = joint1
 		self.j2 = joint2
@@ -57,9 +57,12 @@ class Member:
 	def draw(self, ax: plt.Axes):
 		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue')
 
-	def delete(self):
-		"""Remove line from axes, then delete self"""
+	def delete(self, from_joint=None):
+		"""Remove line from axes, then delete all references to self
+		If from_joint is passed, that joint is to be deleted anyway and so references between
+		the two no longer need to be deleted"""
 		if self.line is not None:
-			self.line.set_visible(False)
-		self.j1.members.remove(self)
-		self.j2.members.remove(self)
+			self.line.remove()
+		for joint in (self.j1, self.j2):
+			if joint is not from_joint:
+				joint.members.remove(self)
