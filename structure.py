@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import List
 
 from parts import Joint, Member
 
@@ -7,7 +8,7 @@ class Structure:
 	"""Structure class stores all joints/members; handles calculation logic
 	Does NOT handle drawing logic"""
 	def __init__(self):
-		self.joints = []
+		self.joints: List[Joint] = []
 
 	def get_nearest_joint(self, pos):
 		"""Return the joint at position of click
@@ -25,3 +26,10 @@ class Structure:
 	def delete_joint(self, joint):
 		self.joints.remove(joint)
 		joint.delete()
+
+	@property
+	def is_determinate(self):
+		j = len(self.joints)
+		m = sum(len(j.members) for j in self.joints) // 2
+		r = sum(sum(j.support.restrictions) for j in self.joints)
+		return 2 * j == m + r
