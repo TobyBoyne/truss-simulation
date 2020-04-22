@@ -61,6 +61,14 @@ class Member:
 	def draw(self, ax: plt.Axes):
 		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue')
 
+	def direction(self, from_joint: Joint) -> np.ndarray:
+		"""Find the direction vector from from_joint to the other joint connected to the member"""
+		dir_vec = self.j1.pos - self.j2.pos
+		if from_joint is self.j1:
+			dir_vec *= -1
+		return dir_vec
+
+
 	def delete(self, from_joint=None):
 		"""Remove line from axes, then delete all references to self
 		If from_joint is passed, that joint is to be deleted anyway and so references between
