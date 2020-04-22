@@ -20,7 +20,7 @@ class Joint:
 		self.support_type = support
 		self.line = None
 
-	def add_member(self, other: 'Joint'):
+	def add_member(self, other: 'Joint') -> 'Member':
 		new_member = Member(self, other)
 		self.members.append(new_member)
 		other.members.append(new_member)

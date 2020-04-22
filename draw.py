@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.backend_bases import MouseButton
+from matplotlib.backend_bases import MouseButton, MouseEvent
 import numpy as np
 from itertools import chain
 
@@ -7,6 +7,8 @@ from parts import Joint, Member
 from structure import Structure
 
 class EventHandler:
+	"""Handles all events from user input
+	Contains calls for drawing"""
 	def __init__(self, fig: plt.Figure, ax: plt.Axes):
 		self.fig = fig
 		self.ax = ax
@@ -16,7 +18,7 @@ class EventHandler:
 		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--')
 
 
-	def on_click(self, event):
+	def on_click(self, event: MouseEvent):
 		"""On click event is handled by the JointHandler class
 		If an existing joint is right-clicked on, change the joint type
 		If it is double-clicked, remove the joint
@@ -48,7 +50,7 @@ class EventHandler:
 				new_joint.draw(self.ax)
 		self.fig.canvas.draw()
 
-	def on_release(self, event):
+	def on_release(self, event: MouseEvent):
 		"""If the mouse is being held down to draw a new member, create a member between the origin
 		and the nearest joint, if one is near"""
 		if self.origin_joint is not None:
@@ -62,7 +64,7 @@ class EventHandler:
 			self.origin_joint = None
 			self.fig.canvas.draw()
 
-	def on_move(self, event):
+	def on_move(self, event: MouseEvent):
 		"""If a line is being drawn, update the member to end at the current mouse position"""
 		if self.origin_joint is not None:
 			pos = np.array([event.xdata, event.ydata])
