@@ -26,6 +26,13 @@ class Joint:
 		other.members.append(new_member)
 		return new_member
 
+	@property
+	def support(self) -> Support:
+		return SUPPORT_TYPES[self.support_type]
+
+	def change_joint_type(self):
+		self.support_type = (self.support_type + 1) % len(SUPPORT_TYPES)
+
 	def draw(self, ax: plt.Axes):
 		"""Plots a marker on the axes. If there is already a marker for this joint, update it"""
 		color = SUPPORT_TYPES[self.support_type].color
@@ -36,9 +43,6 @@ class Joint:
 
 	def is_near(self, other_pos, radius=0.02):
 		return np.linalg.norm(self.pos - other_pos) < radius
-
-	def change_joint_type(self):
-		self.support_type = (self.support_type + 1) % len(SUPPORT_TYPES)
 
 	def delete(self):
 		"""Removes the marker and all connected members"""
