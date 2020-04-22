@@ -36,3 +36,7 @@ class Structure:
 		m = sum(len(j.members) for j in self.joints) // 2
 		r = sum(sum(j.support.restrictions) for j in self.joints)
 		return 2 * j == m + r
+
+
+	def simulate(self):
+		pass

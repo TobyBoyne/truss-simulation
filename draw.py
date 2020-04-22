@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.backend_bases import MouseButton, MouseEvent
+from matplotlib.backend_bases import MouseButton, MouseEvent, KeyEvent
 import numpy as np
 from itertools import chain
 
@@ -72,15 +72,26 @@ class EventHandler:
 			self.fig.canvas.draw()
 
 
+	def on_key_down(self, event: KeyEvent):
+		"""If the space key is pressed, start simulating structure"""
+		if event.key == ' ':
+			if not self.structure.is_determinate:
+				raise NotImplementedError('The simulation only works for statically determinate structures.')
+			self.structure.simulate()
+
+
 
 def get_draw_ui():
 	"""Creates figure and axes for drawing
 	Connects click event to onclick function"""
 	fig, ax = plt.subplots()
 	handler = EventHandler(fig, ax)
+
 	fig.canvas.mpl_connect('button_press_event', handler.on_click)
 	fig.canvas.mpl_connect('button_release_event', handler.on_release)
 	fig.canvas.mpl_connect('motion_notify_event', handler.on_move)
+	fig.canvas.mpl_connect('key_press_event', handler.on_key_down)
+
 	ax.autoscale(False)
 	return fig, ax, handler
 
