@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton, MouseEvent, KeyEvent
 from matplotlib.widgets import RadioButtons
 import numpy as np
-from itertools import chain
+from typing import Tuple
 
 from parts import Joint, Member
 from structure import Structure
@@ -10,15 +10,15 @@ from structure import Structure
 class EventHandler:
 	"""Handles all events from user input
 	Contains calls for drawing"""
-	def __init__(self, fig: plt.Figure, ax: plt.Axes):
-		self.fig = fig
-		self.ax = ax
+	def __init__(self):
+		self.fig, self.ax, rax = get_draw_ui(self)
+
 		self.structure = Structure()
 
 		self.origin_joint = None
 		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--')
 
-		self.mode_buttons = RadioButtons(ax, ('Draw', 'Force', 'Delete'))
+		self.mode_buttons = RadioButtons(rax, ('Draw', 'Force', 'Delete'))
 		self.mode_buttons.on_clicked(self.choose_mode)
 		self.mode = 'Draw'
 
@@ -89,11 +89,11 @@ class EventHandler:
 
 
 
-def get_draw_ui():
+def get_draw_ui(handler: EventHandler) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
 	"""Creates figure and axes for drawing
+	Also creates rax for radio buttons
 	Connects click event to onclick function"""
-	fig, ax = plt.subplots()
-	handler = EventHandler(fig, ax)
+	fig, (ax, rax) = plt.subplots(2, 1)
 
 	fig.canvas.mpl_connect('button_press_event', handler.on_click)
 	fig.canvas.mpl_connect('button_release_event', handler.on_release)
@@ -101,10 +101,10 @@ def get_draw_ui():
 	fig.canvas.mpl_connect('key_press_event', handler.on_key_down)
 
 	ax.autoscale(False)
-	return fig, ax, handler
+	return fig, ax, rax
 
 
 
 if __name__ == '__main__':
-	fig, ax, handler = get_draw_ui()
+	handler = EventHandler()
 	plt.show()
