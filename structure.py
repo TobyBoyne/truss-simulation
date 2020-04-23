@@ -14,7 +14,7 @@ class Structure:
 		"""Return the joint at position of click
 		If no joint is there, then return None"""
 		for joint in self.joints:
-			if joint.is_near(pos, radius=0.02):
+			if joint.is_near(pos, radius=0.04):
 				return joint
 		return None
 

@@ -37,7 +37,7 @@ class Joint:
 		"""Plots a marker on the axes. If there is already a marker for this joint, update it"""
 		color = SUPPORT_TYPES[self.support_type].color
 		if self.line is None:
-			self.line, = ax.plot(*self.pos,'o', color=color, picker=True)
+			self.line, = ax.plot(*self.pos,'o', color=color, picker=5)
 		else:
 			self.line.set_color(color)
 
@@ -59,7 +59,7 @@ class Member:
 		self.line = None
 
 	def draw(self, ax: plt.Axes):
-		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue')
+		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue', picker=5)
 
 	def direction(self, from_joint: Joint) -> np.ndarray:
 		"""Find the direction vector from from_joint to the other joint connected to the member"""

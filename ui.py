@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.backend_bases import MouseButton, MouseEvent, KeyEvent
+from matplotlib.backend_bases import MouseButton, MouseEvent, KeyEvent, PickEvent
 from matplotlib.widgets import RadioButtons
 import numpy as np
 from typing import Tuple
@@ -49,14 +49,10 @@ class EventHandler:
 		if self.mode == Modes.DRAW:
 			if joint is not None:
 				if event.button == MouseButton.LEFT:
-					if event.dblclick:
-						# delete the joint
-						self.structure.delete_joint(joint)
-					else:
-						# set the new member to be visible
-						self.origin_joint = joint
-						self.new_line.set_data(*zip(joint.pos, pos))
-						self.new_line.set_visible(True)
+					# set the new member to be visible
+					self.origin_joint = joint
+					self.new_line.set_data(*zip(joint.pos, pos))
+					self.new_line.set_visible(True)
 
 				elif event.button == MouseButton.RIGHT:
 					# change the type of support
@@ -74,14 +70,22 @@ class EventHandler:
 		elif self.mode == Modes.FORCE:
 			pass
 
-		elif self.mode == Modes.DELETE:
-			pass
-
-		# other modes not implemented
-		else:
-			raise NotImplementedError
 
 		self.fig.canvas.draw()
+
+	def on_pick(self, event: PickEvent):
+		"""Triggers when an artist is clicked on
+		Used to delete members/joints"""
+		if self.mode == Modes.DELETE:
+			artist = event.artist
+			for joint in self.structure.joints:
+				if artist is joint.line:
+					joint.delete()
+					return
+				for member in joint.members:
+					if artist is member.line:
+						member.delete()
+						return
 
 	def on_release(self, event: MouseEvent):
 		"""If the mouse is being held down to draw a new member, create a member between the origin
@@ -121,6 +125,7 @@ def get_draw_ui(handler: EventHandler) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
 	fig, (ax, rax) = plt.subplots(2, 1)
 
 	fig.canvas.mpl_connect('button_press_event', handler.on_click)
+	fig.canvas.mpl_connect('pick_event', handler.on_pick)
 	fig.canvas.mpl_connect('button_release_event', handler.on_release)
 	fig.canvas.mpl_connect('motion_notify_event', handler.on_move)
 	fig.canvas.mpl_connect('key_press_event', handler.on_key_down)
