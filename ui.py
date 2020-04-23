@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton, MouseEvent, KeyEvent
+from matplotlib.widgets import RadioButtons
 import numpy as np
 from itertools import chain
 
@@ -17,6 +18,13 @@ class EventHandler:
 		self.origin_joint = None
 		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--')
 
+		self.mode_buttons = RadioButtons(ax, ('Draw', 'Force', 'Delete'))
+		self.mode_buttons.on_clicked(self.choose_mode)
+		self.mode = 'Draw'
+
+
+	def choose_mode(self, label):
+		self.mode = label
 
 	def on_click(self, event: MouseEvent):
 		"""On click event is handled by the JointHandler class
