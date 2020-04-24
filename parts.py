@@ -17,6 +17,7 @@ class Joint:
 	def __init__(self, pos: np.ndarray, support=0):
 		self.pos = pos
 		self.members = []
+		self.forces = []
 		self.support_type = support
 		self.line = None
 
@@ -25,6 +26,9 @@ class Joint:
 		self.members.append(new_member)
 		other.members.append(new_member)
 		return new_member
+
+	def add_force(self, F):
+		self.forces.append(F)
 
 	@property
 	def support(self) -> Support:
