@@ -116,17 +116,22 @@ class EventHandler:
 			if np.linalg.norm(F) > 0.05:
 				self.structure.add_force(self.force_joint, F)
 
-			self.new_line.set_visible(False)
-			self.origin_joint = None
+			self.new_force.set_visible(False)
+			self.force_joint = None
 
 
 		self.fig.canvas.draw()
 
 	def on_move(self, event: MouseEvent):
 		"""If a line is being drawn, update the member to end at the current mouse position"""
-		if self.origin_joint is not None:
+		if (self.origin_joint is not None and self.mode == Modes.DRAW) or \
+			(self.force_joint is not None and self.mode == Modes.FORCE):
 			pos = np.array([event.xdata, event.ydata])
-			self.new_line.set_data(*zip(self.origin_joint.pos, pos))
+			if self.mode == Modes.DRAW:
+				self.new_line.set_data(*zip(self.origin_joint.pos, pos))
+			elif self.mode == Modes.FORCE:
+				self.new_force.set_data(*zip(self.force_joint.pos, pos))
+
 			self.fig.canvas.draw()
 
 
