@@ -23,7 +23,9 @@ class EventHandler:
 		self.structure = Structure()
 
 		self.origin_joint = None
-		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--')
+		self.force_joint = None
+		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--', color='blue')
+		self.new_force, = self.ax.plot([], [], lw=3, visible=False, ls='--', color='black')
 
 		self.mode_buttons = RadioButtons(rax, [name for name in Modes.__members__])
 
@@ -68,7 +70,12 @@ class EventHandler:
 
 		# FORCE
 		elif self.mode == Modes.FORCE:
-			pass
+			if joint is not None:
+				if event.button == MouseButton.LEFT:
+					# start drawing the force
+					self.force_joint = joint
+					self.new_force.set_data(*zip(joint.pos, pos))
+					self.new_force.set_visible(True)
 
 
 		self.fig.canvas.draw()
@@ -90,6 +97,7 @@ class EventHandler:
 	def on_release(self, event: MouseEvent):
 		"""If the mouse is being held down to draw a new member, create a member between the origin
 		and the nearest joint, if one is near"""
+		# draw new member
 		if self.origin_joint is not None:
 			pos = np.array([event.xdata, event.ydata])
 			joint = self.structure.get_nearest_joint(pos)
@@ -99,7 +107,20 @@ class EventHandler:
 
 			self.new_line.set_visible(False)
 			self.origin_joint = None
-			self.fig.canvas.draw()
+
+		# draw new force
+		if self.force_joint is not None:
+			pos = np.array([event.xdata, event.ydata])
+			F = self.force_joint.pos - pos
+			# minimum force length
+			if np.linalg.norm(F) > 0.05:
+				self.structure.add_force(self.force_joint, F)
+
+			self.new_line.set_visible(False)
+			self.origin_joint = None
+
+
+		self.fig.canvas.draw()
 
 	def on_move(self, event: MouseEvent):
 		"""If a line is being drawn, update the member to end at the current mouse position"""
