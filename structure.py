@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from typing import List, Union
 
-from parts import Joint, Member
+from parts import Joint, Member, SUPPORT_TYPES
 
 class Structure:
 	"""Structure class stores all joints/members; handles calculation logic
@@ -11,13 +11,20 @@ class Structure:
 		self.joints: List[Joint] = []
 
 	@property
-	def all_members(self):
+	def all_members(self) -> List[Member]:
+		"""Returns a list of all members in the structure"""
 		members = []
 		for joint in self.joints:
 			for member in joint.members:
 				if member not in members:
 					members.append(member)
 		return members
+
+	@property
+	def supports(self) -> List[Joint]:
+		"""Returns all the joints that are supports in the structure"""
+		return [j for j in self.joints if j.support_type != 0]
+
 
 	def get_nearest_joint(self, pos) -> Union[Joint, None]:
 		"""Return the joint at position of click
