@@ -10,6 +10,15 @@ class Structure:
 	def __init__(self):
 		self.joints: List[Joint] = []
 
+	@property
+	def all_members(self):
+		members = []
+		for joint in self.joints:
+			for member in joint.members:
+				if member not in members:
+					members.append(member)
+		return members
+
 	def get_nearest_joint(self, pos) -> Union[Joint, None]:
 		"""Return the joint at position of click
 		If no joint is there, then return None"""
@@ -39,4 +48,7 @@ class Structure:
 
 
 	def simulate(self):
+		pass
+
+	def internal_forces(self):
 		pass
