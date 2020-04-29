@@ -28,7 +28,9 @@ class Joint:
 		return new_member
 
 	def add_force(self, F):
-		self.forces.append(F)
+		new_force = Force(F, self.pos)
+		self.forces.append(new_force)
+		return new_force
 
 	@property
 	def support(self) -> Support:
@@ -92,5 +94,5 @@ class Force:
 		self.line = None
 
 	def draw(self, ax: plt.Axes):
-		points = zip(self.origin, self.origin + self.F)
+		points = zip(self.origin, self.origin - self.F)
 		self.line, = ax.plot(*points, color='black')

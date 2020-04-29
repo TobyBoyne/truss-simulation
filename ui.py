@@ -114,7 +114,8 @@ class EventHandler:
 			F = self.force_joint.pos - pos
 			# minimum force length
 			if np.linalg.norm(F) > 0.05:
-				self.force_joint.add_force(F)
+				new_force = self.force_joint.add_force(F)
+				new_force.draw(self.ax)
 
 			self.new_force.set_visible(False)
 			self.force_joint = None
