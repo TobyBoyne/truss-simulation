@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from typing import List, Union
 
-from parts import Joint, Member, SUPPORT_TYPES
+from parts import Joint, Member, Force, SUPPORT_TYPES
 
 class Structure:
 	"""Structure class stores all joints/members; handles calculation logic
@@ -19,6 +19,15 @@ class Structure:
 				if member not in members:
 					members.append(member)
 		return members
+
+	@property
+	def all_forces(self) -> List[Force]:
+		"""Returns a list of all forces acting on the structure"""
+		forces = []
+		for joint in self.joints:
+			for force in joint.forces:
+				forces.append(force)
+		return forces
 
 	@property
 	def supports(self) -> List[Joint]:
@@ -55,7 +64,21 @@ class Structure:
 
 
 	def simulate(self):
-		pass
+		reaction = self.reaction_forces()
+
+	def reaction_forces(self):
+		"""Calculate the reaction forces at the supports by considering horizontal, vertical
+		and moment equilibria"""
+		# TODO: make function more general
+		#  	include moment applied at support in case of cantilever
+		supports = self.supports
+
+		# calculate total forces
+		force_arr = np.array([force.F for force in self.all_forces])
+		print(force_arr)
+
+		rolling_support, static_support = sorted(supports, key=lambda s: sum(s.support.restrictions))
+
 
 	def internal_forces(self):
 		pass
