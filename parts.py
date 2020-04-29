@@ -82,3 +82,15 @@ class Member:
 		for joint in (self.j1, self.j2):
 			if joint is not from_joint:
 				joint.members.remove(self)
+
+
+class Force:
+	"""A point force acting in a given direction"""
+	def __init__(self, F: np.ndarray, origin: np.ndarray):
+		self.F = F
+		self.origin = origin
+		self.line = None
+
+	def draw(self, ax: plt.Axes):
+		points = zip(self.origin, self.origin + self.F)
+		self.line, = ax.plot(*points, color='black')
