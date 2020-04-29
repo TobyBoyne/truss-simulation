@@ -66,18 +66,25 @@ class Structure:
 	def simulate(self):
 		reaction = self.reaction_forces()
 
-	def reaction_forces(self):
+	def reaction_forces(self, forces=None):
 		"""Calculate the reaction forces at the supports by considering horizontal, vertical
 		and moment equilibria"""
 		# TODO: make function more general
 		#  	include moment applied at support in case of cantilever
 		supports = self.supports
 
-		# calculate total forces
-		force_arr = np.array([force.F for force in self.all_forces])
+		# calculate total forces and moments
+		# if no force set is provided, use real forces
+		if forces is None:
+			forces = self.all_forces
+		force_arr = np.array([force.F for force in forces])
 		print(force_arr)
+		resultant = np.sum(force_arr, axis=0)
+		pivot = np.array([0, 0])
+		total_moment = sum([force.moment(pivot) for force in forces])
 
 		rolling_support, static_support = sorted(supports, key=lambda s: sum(s.support.restrictions))
+		
 
 
 	def internal_forces(self):
