@@ -96,3 +96,8 @@ class Force:
 	def draw(self, ax: plt.Axes):
 		points = zip(self.origin, self.origin - self.F)
 		self.line, = ax.plot(*points, color='black')
+
+	def moment(self, pivot: np.ndarray):
+		"""Calculate the moment of the force about a pivot point"""
+		M = np.cross(self.origin - pivot, self.F)
+		return M
