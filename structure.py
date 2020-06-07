@@ -64,23 +64,19 @@ class Structure:
 
 
 	def simulate(self):
-		reaction = self.reaction_forces()
+		internal = self.internal_forces()
 
-	def reaction_forces(self, forces=None):
-		"""Calculate the reaction forces at the supports by considering horizontal, vertical
-		and moment equilibria"""
+	def reaction_forces(self, forces):
+		"""Create simultaneous equations for the reactions of the structure to be solved in internal_forces"""
 		# TODO: make function more general
 		#  	include moment applied at support in case of cantilever
 		supports = self.supports
 
-		reactions = np.array((len(self.joints), 3))
+		reactions = np.zeros((len(self.joints), 3))
 
 		# calculate total forces and moments
-		# if no force set is provided, use real forces
-		if forces is None:
-			forces = self.all_joint_forces
+
 		force_arr = np.array([force.F for force in forces])
-		print(force_arr)
 		resultant = np.sum(force_arr, axis=0)
 		pivot = np.array([0, 0])
 		total_moment = sum([force.moment(pivot) for force in forces])
@@ -95,34 +91,49 @@ class Structure:
 
 		print(A)
 
-
-		V_rolling, V_static, H_static = np.linalg.solve(A, -resultant)
-		rolling_support.reaction = np.array([0, V_rolling])
-		static_support.reaction = np.array([H_static, V_static])
-
-		reactions[self.joints.index(rolling_support), :] = np.array([0, V_rolling, 0])
-		reactions[self.joints.index(static_support), :] = np.array([H_static, V_static, 0])
-		return reactions
+		return A, resultant, rolling_support, static_support
 
 
-	def internal_forces(self):
+	def internal_forces(self, force_set=None):
 		"""Use method of joints to find tensions in all members"""
 		members = self.all_members
 		k = 0.0001 # stiffness of beams
 
-		# N equations - two (x, y) for each joint
+		# if no force set is provided, use real forces
+		if force_set is None:
+			force_set = self.all_joint_forces
+
+		reaction_eq, resultant, rolling, static = self.reaction_forces(force_set)
+
+		# 2N equations - two (x, y) for each joint
+		# 2N unknowns - 3 reaction forces, 2N-3 member forces
 		N = len(self.joints) * 2
-		equations = np.array((N, N))
-		forces = np.array(N)
+		equations = np.zeros((N, N))
+		equations[:3, :3] = reaction_eq
+
+		forces = np.zeros(N)
+		forces[:3] = resultant
+
 		for i, j in enumerate(self.joints):
 			eq = np.zeros((2, N))
 			for m in j.members:
-				idx = members.index(m)
+				idx = members.index(m) + 3
 				# direction vector from current join -> tension
 				dir_vec = m.direction(j)
 				eq[:, idx] = (dir_vec / np.linalg.norm(dir_vec))
+
+			# add reaction force to eq
+			if j is rolling:
+				# reaction vec accounts for horizontal or vertical
+				reaction_vec = np.array(j.support.restrictions).astype(float)[:2]
+				print("reaction vec=", reaction_vec)
+				eq[:, 0] = reaction_vec
+			elif j is static:
+				reaction_vec = np.array([[0, 1], [1, 0]])
+				eq[:, 1:3] = reaction_vec
+
 			equations[i*2:i*2+2, :] = eq
-			forces[i*2:i*2+2] = np.sum(np.array([force.F for force in forces]))
+			forces[i*2:i*2+2] += np.sum(np.array([force.F for force in j.forces]))
 
 		print(equations, forces)
 
@@ -130,4 +141,6 @@ class Structure:
 
 
 if __name__ == "__main__":
-	pass
+	a = np.array([[1, 2], [3, 4]])
+	b = np.array([[5, 6]])
+	print(np.concatenate((a, b)))
