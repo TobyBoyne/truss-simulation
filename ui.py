@@ -6,7 +6,7 @@ from typing import Tuple
 from enum import Enum
 
 from parts import Joint, Member
-from structure import Structure
+from drawing import DrawingStructure
 
 class Modes(Enum):
 	DRAW = 0
@@ -20,7 +20,8 @@ class EventHandler:
 	def __init__(self):
 		self.fig, self.ax, rax = get_draw_ui(self)
 
-		self.structure = Structure()
+		# self.structure = Structure()
+		self.drawing_structure = DrawingStructure(self.fig, self.ax)
 
 		self.origin_joint = None
 		self.force_joint = None
@@ -45,7 +46,7 @@ class EventHandler:
 		if event.inaxes is not self.ax:
 			return
 		pos = np.array([event.xdata, event.ydata])
-		joint = self.structure.get_nearest_joint(pos)
+		joint = self.drawing_structure.get_nearest_joint(pos)
 
 		# DRAW
 		if self.mode == Modes.DRAW:
@@ -58,15 +59,13 @@ class EventHandler:
 
 				elif event.button == MouseButton.RIGHT:
 					# change the type of support
-					joint.change_joint_type()
-					joint.draw(self.ax)
+					self.drawing_structure.change_joint_type(joint)
 
 			# else triggers if click coord is not close to existing point
 			else:
 				if event.button == MouseButton.LEFT:
 					# create new joint
-					new_joint = self.structure.add_joint(pos)
-					new_joint.draw(self.ax)
+					self.drawing_structure.new_joint(pos)
 
 		# FORCE
 		elif self.mode == Modes.FORCE:
@@ -78,50 +77,41 @@ class EventHandler:
 					self.new_force.set_visible(True)
 
 
-		self.fig.canvas.draw()
+		self.drawing_structure.update()
 
 	def on_pick(self, event: PickEvent):
 		"""Triggers when an artist is clicked on
 		Used to delete members/joints"""
 		if self.mode == Modes.DELETE:
 			artist = event.artist
-			for joint in self.structure.joints:
-				if artist is joint.line:
-					joint.delete()
-					return
-				for member in joint.members:
-					if artist is member.line:
-						member.delete()
-						return
+			part = self.drawing_structure.get_picked_artist(artist)
+			part.delete()
 
 	def on_release(self, event: MouseEvent):
 		"""If the mouse is being held down to draw a new member, create a member between the origin
 		and the nearest joint, if one is near"""
+		pos = np.array([event.xdata, event.ydata])
 		# draw new member
 		if self.origin_joint is not None:
-			pos = np.array([event.xdata, event.ydata])
-			joint = self.structure.get_nearest_joint(pos)
+			joint = self.drawing_structure.get_nearest_joint(pos)
 			if joint is not None and joint is not self.origin_joint:
-				new_member = joint.add_member(self.origin_joint)
-				new_member.draw(self.ax)
+				self.drawing_structure.new_member(joint, self.origin_joint)
 
 			self.new_line.set_visible(False)
 			self.origin_joint = None
 
 		# draw new force
 		if self.force_joint is not None:
-			pos = np.array([event.xdata, event.ydata])
 			F = self.force_joint.pos - pos
 			# minimum force length
 			if np.linalg.norm(F) > 0.05:
-				new_force = self.force_joint.add_force(F)
-				new_force.draw(self.ax)
+				self.drawing_structure.new_point_force(self.force_joint, F)
 
 			self.new_force.set_visible(False)
 			self.force_joint = None
 
 
-		self.fig.canvas.draw()
+		self.drawing_structure.update()
 
 	def on_move(self, event: MouseEvent):
 		"""If a line is being drawn, update the member to end at the current mouse position"""
@@ -133,15 +123,15 @@ class EventHandler:
 			elif self.mode == Modes.FORCE:
 				self.new_force.set_data(*zip(self.force_joint.pos, pos))
 
-			self.fig.canvas.draw()
+			self.drawing_structure.update()
 
 
 	def on_key_down(self, event: KeyEvent):
 		"""If the space key is pressed, start simulating structure"""
 		if event.key == ' ':
-			if not self.structure.is_determinate:
+			if not self.drawing_structure.is_determinate:
 				raise NotImplementedError('The simulation only works for statically determinate structures.')
-			self.structure.simulate()
+			self.drawing_structure.simulate()
 
 
 
