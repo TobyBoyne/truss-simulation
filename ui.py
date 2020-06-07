@@ -7,6 +7,7 @@ from enum import Enum
 
 from parts import Joint, Member
 from drawing import DrawingStructure
+from examples import triangle
 
 class Modes(Enum):
 	DRAW = 0
@@ -17,11 +18,15 @@ class Modes(Enum):
 class EventHandler:
 	"""Handles all events from user input
 	Contains calls for drawing"""
-	def __init__(self):
+	def __init__(self, structure_example=None):
 		self.fig, self.ax, rax = get_draw_ui(self)
 
-		# self.structure = Structure()
-		self.drawing_structure = DrawingStructure(self.fig, self.ax)
+		if structure_example is None:
+			drawing_structure = DrawingStructure(self.fig, self.ax)
+		else:
+			drawing_structure = structure_example(self.fig, self.ax)
+
+		self.drawing_structure = drawing_structure
 
 		self.origin_joint = None
 		self.force_joint = None
@@ -153,5 +158,5 @@ def get_draw_ui(handler: EventHandler) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
 
 
 if __name__ == '__main__':
-	handler = EventHandler()
+	handler = EventHandler(triangle)
 	plt.show()
