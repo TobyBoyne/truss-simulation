@@ -36,6 +36,13 @@ class EventHandler:
 
 		self.mode_buttons = mpl.widgets.RadioButtons(rax, [name for name in Modes.__members__])
 
+		cb = self.ax.figure.colorbar(
+			mpl.cm.ScalarMappable(cmap=tension_cmap),
+			ax=self.ax, fraction=.1)
+
+		cb.set_ticks([1, 0.5, 0])
+		cb.set_ticklabels(["max tension", "no force", "max compression"])
+
 
 	@property
 	def mode(self):
@@ -137,14 +144,9 @@ class EventHandler:
 		if event.key == ' ':
 			if not self.drawing_structure.is_determinate:
 				raise NotImplementedError('The simulation only works for statically determinate structures.')
-			self.simulate_structure()
+			self.drawing_structure.simulate()
 
-	def simulate_structure(self):
-		"""Function called to simulate structure, adds colour bar"""
-		max_tension = self.drawing_structure.simulate()
-		self.ax.figure.colorbar(
-			mpl.cm.ScalarMappable(cmap=tension_cmap),
-			ax=self.ax, fraction=.1)
+
 
 
 
@@ -167,5 +169,5 @@ def get_draw_ui(handler: EventHandler) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
 
 
 if __name__ == '__main__':
-	handler = EventHandler(examples.square_and_triangle)
+	handler = EventHandler()
 	plt.show()

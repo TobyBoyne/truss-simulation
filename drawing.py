@@ -38,7 +38,8 @@ class DrawingStructure(Structure):
 
 	def structure_bbox(self):
 		"""Return the bounding box for the Axis object that the structure is plotted on"""
-		bbox = self.ax.get_window_extent().transformed(self.fig.dpi_scale_trans.inverted())
+		axis_bbox = self.ax.get_window_extent().transformed(self.fig.dpi_scale_trans.inverted())
+		bbox = axis_bbox.expanded(1.7, 1.2)
 		return bbox
 
 	def update(self):
