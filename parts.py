@@ -72,7 +72,7 @@ class Member:
 		self.tension = 0 # tension in member
 
 	def draw(self, ax: plt.Axes):
-		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue', picker=5)
+		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue', picker=5, lw=3)
 
 	def direction(self, from_joint: Joint) -> np.ndarray:
 		"""Find the direction vector from from_joint to the other joint connected to the member"""

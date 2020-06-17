@@ -11,7 +11,11 @@ https://matplotlib.org/3.1.1/gallery/shapes_and_collections/marker_path.html
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 from matplotlib import patches
+import matplotlib as mpl
 import numpy as np
+
+tension_cmap = mpl.colors.LinearSegmentedColormap.from_list(
+        'tensions', ['red', 'black', 'blue'])
 
 rot_array = np.array([[0, -1], [1, 0]])
 

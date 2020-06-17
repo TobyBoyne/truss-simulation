@@ -85,6 +85,7 @@ class Structure:
 			member.draw_tension(norm_tension)
 
 		self.update()
+		return max_tension
 
 	def reaction_forces(self, forces):
 		"""Create simultaneous equations for the reactions of the structure to be solved in internal_forces"""
@@ -156,7 +157,6 @@ class Structure:
 			forces[i*2:i*2+2] = force
 
 		solution = np.linalg.solve(equations, -forces)
-		print(solution)
 		tensions = solution[3:]
 		return tensions
 

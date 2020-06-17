@@ -56,6 +56,7 @@ def square_and_triangle(fig, ax):
 		structure.new_member(j1, j2)
 
 	structure.new_point_force(structure.joints[3], np.array([-0.2, -0.2]))
+	structure.new_point_force(structure.joints[2], np.array([-0.1, 0]))
 
 	return structure
 

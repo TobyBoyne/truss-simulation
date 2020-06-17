@@ -1,13 +1,14 @@
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton, MouseEvent, KeyEvent, PickEvent
-from matplotlib.widgets import RadioButtons
+import matplotlib as mpl
 import numpy as np
 from typing import Tuple
 from enum import Enum
 
 from parts import Joint, Member
 from drawing import DrawingStructure
-from examples import triangle
+import examples
+from styles import tension_cmap
 
 class Modes(Enum):
 	DRAW = 0
@@ -33,7 +34,7 @@ class EventHandler:
 		self.new_line, = self.ax.plot([], [], lw=3, visible=False, ls='--', color='blue')
 		self.new_force, = self.ax.plot([], [], lw=3, visible=False, ls='--', color='black')
 
-		self.mode_buttons = RadioButtons(rax, [name for name in Modes.__members__])
+		self.mode_buttons = mpl.widgets.RadioButtons(rax, [name for name in Modes.__members__])
 
 
 	@property
@@ -136,7 +137,14 @@ class EventHandler:
 		if event.key == ' ':
 			if not self.drawing_structure.is_determinate:
 				raise NotImplementedError('The simulation only works for statically determinate structures.')
-			self.drawing_structure.simulate()
+			self.simulate_structure()
+
+	def simulate_structure(self):
+		"""Function called to simulate structure, adds colour bar"""
+		max_tension = self.drawing_structure.simulate()
+		self.ax.figure.colorbar(
+			mpl.cm.ScalarMappable(cmap=tension_cmap),
+			ax=self.ax, fraction=.1)
 
 
 
@@ -144,7 +152,8 @@ def get_draw_ui(handler: EventHandler) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
 	"""Creates figure and axes for drawing
 	Also creates rax for radio buttons
 	Connects click event to onclick function"""
-	fig, (ax, rax) = plt.subplots(2, 1)
+	fig, (ax, rax) = plt.subplots(ncols=2, figsize=(20, 8))
+
 
 	fig.canvas.mpl_connect('button_press_event', handler.on_click)
 	fig.canvas.mpl_connect('pick_event', handler.on_pick)
@@ -158,5 +167,5 @@ def get_draw_ui(handler: EventHandler) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
 
 
 if __name__ == '__main__':
-	handler = EventHandler(triangle)
+	handler = EventHandler(examples.square_and_triangle)
 	plt.show()
