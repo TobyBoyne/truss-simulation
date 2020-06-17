@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import namedtuple
+from typing import List
+
+from styles import tension_cmap
 
 # support types show the (X, Y, rot) restrictions
 Support = namedtuple('Support', ('restrictions', 'color'))
@@ -16,12 +19,14 @@ class Joint:
 	"""Class to contain a joint or support"""
 	def __init__(self, pos: np.ndarray, support=0):
 		self.pos = pos
-		self.members = []
+		self.members: List[Member] = []
 		self.forces = []
 		self.support_type = support
 		self.line = None
+		self.reaction = np.array([0, 0, 0]) # reaction force at joint
 
 	def add_member(self, other: 'Joint') -> 'Member':
+		# TODO: Avoid adding multiple of the same member
 		new_member = Member(self, other)
 		self.members.append(new_member)
 		other.members.append(new_member)
@@ -36,8 +41,8 @@ class Joint:
 	def support(self) -> Support:
 		return SUPPORT_TYPES[self.support_type]
 
-	def change_joint_type(self):
-		self.support_type = (self.support_type + 1) % len(SUPPORT_TYPES)
+	def change_joint_type(self, n=1):
+		self.support_type = (self.support_type + n) % len(SUPPORT_TYPES)
 
 	def draw(self, ax: plt.Axes):
 		"""Plots a marker on the axes. If there is already a marker for this joint, update it"""
@@ -59,10 +64,12 @@ class Joint:
 
 class Member:
 	"""Stores information about a single member between two joints"""
+	k = 0.0001  # stiffness of beams
 	def __init__(self, joint1: Joint, joint2: Joint):
 		self.j1 = joint1
 		self.j2 = joint2
 		self.line = None
+		self.tension = 0 # tension in member
 
 	def draw(self, ax: plt.Axes):
 		self.line, = ax.plot(*zip(self.j1.pos, self.j2.pos), color='blue', picker=5)
@@ -74,6 +81,12 @@ class Member:
 			dir_vec *= -1
 		return dir_vec
 
+	def length(self):
+		return np.linalg.norm(self.direction(self.j2))
+
+	def draw_tension(self, norm_tension):
+		c = tension_cmap(norm_tension)
+		self.line.set_color(c)
 
 	def delete(self, from_joint=None):
 		"""Remove line from axes, then delete all references to self

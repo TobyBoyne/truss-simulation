@@ -69,14 +69,22 @@ class Structure:
 		lengths = np.array([m.length() for m in members])
 		extensions = tensions * lengths
 
-		x_F = np.array([1., 0.])
-		y_F = np.array([0., 1.])
+		# x_F = np.array([1., 0.])
+		# y_F = np.array([0., 1.])
+		#
+		# for joint in self.joints:
+		# 	x_restr, y_restr = joint.support.restrictions[:2]
+		# 	if not x_restr:
+		# 		force_virtual = Force(x_F, joint.pos)
+		# 		tensions_virtual = self.internal_forces()
 
-		for joint in self.joints:
-			x_restr, y_restr = joint.support.restrictions[:2]
-			if not x_restr:
-				force_virtual = Force(x_F, joint.pos)
-				tensions_virtual = self.internal_forces()
+		max_tension = np.abs(tensions).max()
+		for tension, member in zip(tensions, members):
+			# normalise tension so that 0-0.5 is compressive, 0.5-1 is tensile
+			norm_tension = tension / (2 * max_tension) + 0.5
+			member.draw_tension(norm_tension)
+
+		self.update()
 
 	def reaction_forces(self, forces):
 		"""Create simultaneous equations for the reactions of the structure to be solved in internal_forces"""
@@ -143,6 +151,7 @@ class Structure:
 
 			equations[i*2:i*2+2, :] = eq
 			force = np.zeros(2)
+			# TODO: use force set, not force on joint
 			force += np.sum(np.array([force.F for force in j.forces]), axis=0)
 			forces[i*2:i*2+2] = force
 
@@ -159,6 +168,9 @@ class Structure:
 
 		work = tensions * lengths
 		return work
+
+	def update(self):
+		"""Empty function, prevents errors being raised if not a DrawingStructure"""
 
 
 
