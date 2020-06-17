@@ -98,7 +98,11 @@ class EventHandler:
 		if self.mode == Modes.DELETE:
 			artist = event.artist
 			part = self.drawing_structure.get_picked_artist(artist)
-			part.delete()
+			if isinstance(part, Joint):
+				# if the part is a joint, needs to be removed from structure.joints
+				self.drawing_structure.delete_joint(part)
+			else:
+				part.delete()
 
 	def on_release(self, event: MouseEvent):
 		"""If the mouse is being held down to draw a new member, create a member between the origin
